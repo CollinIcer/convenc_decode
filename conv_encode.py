@@ -4,7 +4,7 @@ in_fp = open("enc_in.txt","r")
 out_data = []
 #ranbit=[]
 i=0
-print("init state",state)
+#print("init state",state)
 #once a bit
 for x in in_fp: 
     #ranbit.append(state[0])
@@ -63,12 +63,12 @@ def acs(cost,cost_pre,cost_valid):
         sel   = 0
     return [valid,sel,sel_cost]
 
-def viterbi_decoder(rx_bitstream,DECODE_LEN):
+def viterbi_decoder(init_valid_bit,rx_bitstream,DECODE_LEN):
     path_cost=[0]*64
     path_cost_next=[0]*64
     cost_valid=[0]*64
     cost_valid_next=[0]*64
-    cost_valid[0] = 1 #first valid
+    cost_valid[init_valid_bit] = 1 #first valid
     sel_ram=[[0 for t in range(64)] for x in range(DECODE_LEN)]
     i=0
     for i in range(0,DECODE_LEN):
@@ -118,20 +118,29 @@ def viterbi_decoder(rx_bitstream,DECODE_LEN):
         new_sel_bits.append(sel_ram[DECODE_LEN-i-1][sel_ram_idx])
         sel_ram_idx = new_sel_bits[0] + new_sel_bits[1]*2 + new_sel_bits[2]*4 + new_sel_bits[3]*8 + new_sel_bits[4]*16 + new_sel_bits[5]*32
 
-    return decode_bits
+    return [min_path_id,decode_bits]
 
 i=0
 decode_bits = []
 
 #ERR
-#for i in range(12): #decode 1200bits
-#    decode_bits.extend(viterbi_decoder(out_data[i*300:i*300+300],100))
+init_path = 0
+dec_res=[]
+for i in range(12): #decode 1200bits
+    dec_res=(viterbi_decoder(init_path,out_data[i*300:i*300+300],100))
+    init_path = dec_res[0]  
+    decode_bits.extend(dec_res[1])
 
 #decode_bits.extend(viterbi_decoder(out_data[300:600],100)) #ERR
-decode_bits.extend(viterbi_decoder(out_data,1200))
+#decode_bits.extend(viterbi_decoder(out_data,1200))
 encin_fp = open("enc_in.txt","r")
 i = 0
+err_flag = 1
 for x in encin_fp:
     if( (int)(x) != decode_bits[i]):
-        print("DECODE ERR!!!!!",i)
+        err_flag = 1
+        print("DECODE FAIL AT ",i)
     i=i+1
+
+if(err_flag==0):
+    print("DECODE ALL PASS")
