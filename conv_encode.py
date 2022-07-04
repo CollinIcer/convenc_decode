@@ -135,7 +135,7 @@ for i in range(12): #decode 1200bits
 #decode_bits.extend(viterbi_decoder(out_data,1200))
 encin_fp = open("enc_in.txt","r")
 i = 0
-err_flag = 1
+err_flag = 0
 for x in encin_fp:
     if( (int)(x) != decode_bits[i]):
         err_flag = 1
